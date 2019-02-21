@@ -3,7 +3,8 @@ import { AppProps, default as NextApp, DefaultAppIProps } from 'next/app';
 import Head from 'next/head';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { getDataFromTree } from 'react-apollo';
+import { getMarkupFromTree } from 'react-apollo-hooks';
+import { renderToString } from 'react-dom/server';
 import initApollo from './apollo';
 import {
   ApolloContext,
@@ -64,15 +65,18 @@ export default function withApollo<TCache = any>(
           (options.getDataFromTree === 'ssr' && ssrMode)
         ) {
           try {
-            await getDataFromTree(
-              <App
-                {...appProps}
-                Component={Component}
-                router={router}
-                apolloState={apolloState}
-                apollo={apollo}
-              />
-            );
+            await getMarkupFromTree({
+              renderFunction: renderToString,
+              tree: (
+                <App
+                  {...appProps}
+                  Component={Component}
+                  router={router}
+                  apolloState={apolloState}
+                  apollo={apollo}
+                />
+              )
+            });
           } catch (error) {
             // Prevent Apollo Client GraphQL errors from crashing SSR.
             if (process.env.NODE_ENV !== 'production') {
